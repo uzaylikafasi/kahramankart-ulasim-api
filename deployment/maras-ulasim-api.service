@@ -1,0 +1,17 @@
+[Unit]
+Description=Maraş Ulaşım API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/kahramankart-ulasim-api
+ExecStart=%h/kahramankart-ulasim-api/run.sh
+Environment=API_HOST=127.0.0.1
+Restart=always
+RestartSec=5
+MemoryMax=200M
+CPUQuota=100%
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

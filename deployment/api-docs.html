@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maraş Ulaşım API</title>
+<style>
+:root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --muted: #475569; --line: #e2e8f0; --accent: #2563eb; --code: #f1f5f9; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --card: #111a2e; --text: #e2e8f0; --muted: #94a3b8; --line: #1e293b; --accent: #60a5fa; --code: #0f172a; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 2rem; margin: 0 0 4px; }
+h2 { margin-top: 40px; font-size: 1.25rem; }
+p, li { color: var(--muted); }
+a { color: var(--accent); }
+code, pre { font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); border-radius: 6px; }
+code { padding: 1px 5px; }
+pre { padding: 12px 14px; overflow-x: auto; border: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 15px; }
+th { font-weight: 600; }
+td code { white-space: nowrap; }
+.wrap { overflow-x: auto; }
+.note { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Maraş Ulaşım API</h1>
+<p>Kahramanmaraş otobüs hatları, durakları, canlı araç konumları ve sefer saatleri için ücretsiz, anahtarsız bir JSON API'si. <a href="https://github.com/uzaylikafasi/maras-ulasim">Maraş Ulaşım</a> Android uygulaması da bunu kullanır. API'nin kaynak kodu <a href="https://github.com/uzaylikafasi/kahramankart-ulasim-api">GitHub</a>'da.</p>
+
+<div class="note">Bu resmî bir hizmet değildir. Belediye veya Kahramankart ile bağlantısı yoktur. Veriler kaynağın verdiği gibidir; varış süreleri tahmindir.</div>
+
+<h2>Hızlı başlangıç</h2>
+<pre>curl 'https://mithrixa.com/ulasim-api/v1/search?q=H/1'
+curl 'https://mithrixa.com/ulasim-api/v1/lines/9576/vehicles?direction=1'</pre>
+<p>Bütün yanıtlar JSON'dur. Tam sözleşme: <a href="openapi.json">openapi.json</a> (OpenAPI 3).</p>
+
+<h2>Uçlar</h2>
+<div class="wrap">
+<table>
+<tr><th>Yol</th><th>Ne verir</th><th>Parametreler</th></tr>
+<tr><td><code>/v1/search</code></td><td>Hat, durak ve adres araması</td><td><code>q</code> (zorunlu), <code>stops</code>, <code>lines</code>, <code>addresses</code></td></tr>
+<tr><td><code>/v1/stops/nearby</code></td><td>Bir konuma yakın duraklar</td><td><code>latitude</code>, <code>longitude</code></td></tr>
+<tr><td><code>/v1/stops/in-bounds</code></td><td>Harita alanındaki duraklar</td><td><code>south</code>, <code>west</code>, <code>north</code>, <code>east</code></td></tr>
+<tr><td><code>/v1/stops/{id}</code></td><td>Durak ve yaklaşan otobüsler</td><td></td></tr>
+<tr><td><code>/v1/stops/{id}/lines</code></td><td>Duraktan geçen hatlar</td><td></td></tr>
+<tr><td><code>/v1/stops/{id}/arrivals</code></td><td>Yaklaşan otobüsler</td><td></td></tr>
+<tr><td><code>/v1/lines/{id}</code></td><td>Hat bilgisi</td><td><code>direction</code></td></tr>
+<tr><td><code>/v1/lines/{id}/vehicles</code></td><td>Hattaki araçların canlı konumu</td><td><code>direction</code></td></tr>
+<tr><td><code>/v1/lines/{id}/stops</code></td><td>Hattın durakları, sırayla</td><td><code>direction</code></td></tr>
+<tr><td><code>/v1/lines/{id}/shape</code></td><td>Güzergâh çizgisi</td><td><code>direction</code>, <code>format=geojson</code></td></tr>
+<tr><td><code>/v1/timetables</code></td><td>Sefer saatleri</td><td><code>line_code</code> (zorunlu)</td></tr>
+<tr><td><code>/v1/announcements</code></td><td>Duyurular</td><td></td></tr>
+<tr><td><code>/v1/journey-points</code></td><td>Yolculuk için başlangıç/varış arama</td><td><code>q</code> (zorunlu)</td></tr>
+<tr><td><code>/v1/journeys</code></td><td>İki durak arası yolculuk önerisi</td><td><code>from_stop_id</code>, <code>to_stop_id</code> (zorunlu); <code>day</code>, <code>hour</code>, <code>minute</code>, <code>walking_meters</code>, <code>waiting_minutes</code></td></tr>
+<tr><td><code>/healthz</code></td><td>Sunucu ayakta mı</td><td></td></tr>
+</table>
+</div>
+
+<h2>Kullanım kuralları</h2>
+<ul>
+<li>Yalnız <code>GET</code>. Anahtar gerekmez.</li>
+<li>Bir IP dakikada en fazla 90 istek yapabilir. Aşılırsa <code>429</code> ve <code>Retry-After</code> döner.</li>
+<li>Canlı araç verisini 15 saniyeden sık sorgulama; kaynak zaten yaklaşık 10 saniyede bir yenilenir.</li>
+<li>Sunucu tek bir küçük bilgisayarda çalışır. Kesintisiz çalışma garantisi yoktur.</li>
+<li>Boş araç listesi "şu an veri yok" demektir; konum uydurulmaz.</li>
+</ul>
+
+<h2>Uygulama</h2>
+<p>Android uygulamasının son sürümü: <a href="download">APK indir</a>. Uygulamanın kaynak kodu <a href="https://github.com/uzaylikafasi/maras-ulasim">GitHub</a>'da.</p>
+</main>
+</body>
+</html>
