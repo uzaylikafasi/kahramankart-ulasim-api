@@ -1,24 +1,38 @@
+![Mavi harita çizgileri, durak noktaları ve JSON parantezleriyle Kahramankart Ulaşım API](docs/banner.png)
+
 # Kahramankart Ulaşım API
 
-Kahramanmaraş otobüs hatları, durakları, canlı araç konumları ve sefer saatleri için sade bir JSON API'si. Python/FastAPI ile yazıldı; [Maraş Ulaşım](https://github.com/uzaylikafasi/maras-ulasim) Android uygulaması bunu kullanır.
+![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-2563EB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+[![Lisans: MIT](https://img.shields.io/badge/Lisans-MIT-2563EB)](LICENSE)
 
-**Hazır sunucu:** `https://mithrixa.com/ulasim-api` · **[Doküman](https://mithrixa.com/ulasim-api/docs)** · [openapi.json](https://mithrixa.com/ulasim-api/openapi.json)
+Kahramanmaraş otobüs hatları, durakları, canlı araç konumları ve sefer saatleri için sade bir JSON API'si. Python ve FastAPI ile yazıldı. [Maraş Ulaşım](https://github.com/uzaylikafasi/maras-ulasim) Android uygulaması bu API'yi kullanır.
+
+**[API dokümanı](https://mithrixa.com/ulasim-api/docs)** · [OpenAPI şeması](https://mithrixa.com/ulasim-api/openapi.json) · [Android uygulamasının reposu](https://github.com/uzaylikafasi/maras-ulasim)
 
 > Resmî bir hizmet değildir. Belediye veya Kahramankart ile bağlantısı yoktur. Veriler kaynağın verdiği gibidir; varış süreleri tahmindir.
 
+**İçindekiler:** [Hızlı deneme](#hızlı-deneme) · [Uçlar](#uçlar) · [Kurulum](#kendi-sunucunda-çalıştırma) · [Dosyalar](#dosyalar) · [Lisans](#lisans)
+
 ## Hızlı deneme
+
+Hazır sunucu: `https://mithrixa.com/ulasim-api`
 
 ```sh
 curl 'https://mithrixa.com/ulasim-api/v1/search?q=H/1'
 curl 'https://mithrixa.com/ulasim-api/v1/lines/9576/vehicles?direction=1'
 ```
 
-Hazır sunucuda anahtar gerekmez. Bir IP dakikada en fazla 90 istek yapabilir; canlı araç verisini 15 saniyeden sık sorgulamayın.
+| Kullanım | Sınır |
+| --- | --- |
+| Erişim anahtarı | Hazır sunucuda gerekmez |
+| İstek sayısı | IP başına dakikada en fazla 90 istek |
+| Canlı araç verisi | 15 saniyeden sık sorgulamayın |
 
 ## Uçlar
 
-| Yol | Ne verir |
-|---|---|
+| Yol | Açıklama |
+| --- | --- |
 | `/v1/search?q=` | Hat, durak ve adres araması |
 | `/v1/stops/nearby?latitude=&longitude=` | Yakındaki duraklar |
 | `/v1/stops/in-bounds?south=&west=&north=&east=` | Harita alanındaki duraklar |
@@ -30,37 +44,51 @@ Hazır sunucuda anahtar gerekmez. Bir IP dakikada en fazla 90 istek yapabilir; c
 | `/v1/timetables?line_code=` | Sefer saatleri |
 | `/v1/announcements` | Duyurular |
 | `/v1/journeys?from_stop_id=&to_stop_id=` | İki durak arası yolculuk önerisi |
-| `/healthz` | Sunucu ayakta mı |
+| `/healthz` | Sunucunun çalışıp çalışmadığı |
 
-Tam liste ve alanlar için [dokümana](https://mithrixa.com/ulasim-api/docs) bakın. Boş araç listesi "şu an veri yok" demektir; konum uydurulmaz.
+Tam liste ve alanlar için [API dokümanına](https://mithrixa.com/ulasim-api/docs) bakın.
+
+> Boş araç listesi, "şu an veri yok" demektir; konum uydurulmaz.
 
 ## Kendi sunucunda çalıştırma
 
-Python 3.11+ gerekir.
+**Gereksinim:** Python 3.11+
 
 ```sh
-cp .env.example .env    # ayarları düzenle
-./run.sh                # .venv yoksa kurar, http://127.0.0.1:8000 adresinde başlatır
+cp .env.example .env
+# .env dosyasındaki ayarları düzenleyin.
+./run.sh
 ```
 
-Kaynak servise erişim bilgisi depoda yoktur. `.env` içinde `PALLIUM_AUTH_FILE` (yerel JSON dosyası) ya da `PALLIUM_AUTHORIZATION` (tam başlık değeri) ile verilir; istemci koduna veya tarayıcıya gönderilmez.
+`run.sh`, `.venv` yoksa oluşturup bağımlılıkları kurar ve sunucuyu varsayılan olarak `http://127.0.0.1:8000` adresinde başlatır. Yerel etkileşimli doküman: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-İsteğe bağlı ayarlar:
+### Kaynak servise erişim
 
-- `API_HOST`, `API_PORT`: dinlenecek adres (başka cihazlardan erişim için `API_HOST=0.0.0.0`)
-- `API_ACCESS_KEY`: ayarlanırsa `/v1` çağrıları `X-API-Key` başlığı ister
-- `CORS_ORIGINS`: tarayıcıdan erişebilecek siteler
+Kaynak servise erişim bilgisi depoda yoktur. `.env` dosyasında aşağıdaki iki ayardan biriyle verilir; istemci koduna veya tarayıcıya gönderilmez.
 
-Yerel sunucuda etkileşimli doküman `http://127.0.0.1:8000/docs` adresindedir.
+| Değişken | Değer |
+| --- | --- |
+| `PALLIUM_AUTH_FILE` | Erişim bilgisini içeren yerel JSON dosyasının yolu |
+| `PALLIUM_AUTHORIZATION` | Tam başlık değeri |
+
+### İsteğe bağlı ayarlar
+
+| Değişken | Açıklama |
+| --- | --- |
+| `API_HOST`, `API_PORT` | Dinlenecek adres ve port. Başka cihazlardan erişim için `API_HOST=0.0.0.0` |
+| `API_ACCESS_KEY` | Ayarlanırsa `/v1` çağrıları `X-API-Key` başlığı ister |
+| `CORS_ORIGINS` | Tarayıcıdan erişebilecek siteler |
 
 ## Dosyalar
 
-- `transport_api/`: sunucu (FastAPI) ve kaynak servis adaptörü
-- `deployment/`: herkese açık köprü (`transport_proxy.py`: yalnız GET, IP başına sınır), doküman sayfası, systemd örneği
-- `examples/client.mjs`: JavaScript istemci örneği
-- `tools/`: durak listesi üretme betikleri
-- `tests/`: `pytest` ve `node --test tests/client.test.mjs`
+| Yol | İçerik |
+| --- | --- |
+| [transport_api/](transport_api/) | FastAPI sunucusu ve kaynak servis adaptörü |
+| [deployment/](deployment/) | Herkese açık köprü (`transport_proxy.py`: yalnız GET, IP başına sınır), doküman sayfası ve systemd örneği |
+| [examples/client.mjs](examples/client.mjs) | JavaScript istemci örneği |
+| [tools/](tools/) | Durak listesi üretme betikleri |
+| [tests/](tests/) | Testler: `pytest` ve `node --test tests/client.test.mjs` |
 
 ## Lisans
 
-MIT
+[MIT](LICENSE)
