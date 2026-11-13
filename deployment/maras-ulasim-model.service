@@ -1,0 +1,14 @@
+[Unit]
+Description=Maraş Ulaşım çevrimdışı model yeniden üretimi (48 saatte bir)
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/kahramankart-ulasim-api
+ExecStart=/usr/bin/python3 %h/kahramankart-ulasim-api/tools/model_yenile.py
+Nice=19
+IOSchedulingClass=idle
+CPUSchedulingPolicy=batch
+MemoryMax=600M
+CPUQuota=100%
+TimeoutStartSec=1h
+NoNewPrivileges=true

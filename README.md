@@ -44,6 +44,8 @@ curl 'https://mithrixa.com/ulasim-api/v1/lines/9576/vehicles?direction=1'
 | `/v1/timetables?line_code=` | Sefer saatleri |
 | `/v1/announcements` | Duyurular |
 | `/v1/journeys?from_stop_id=&to_stop_id=` | İki durak arası yolculuk önerisi |
+| `/v1/offline-model/meta` | Çevrimdışı tahmin modelinin özeti (sürüm, sha256) |
+| `/offline-model` | Çevrimdışı tahmin modeli (`offline-model.json.gz`, yalnız genel vekilde) |
 | `/healthz` | Sunucunun çalışıp çalışmadığı |
 
 Tam liste ve alanlar için [API dokümanına](https://mithrixa.com/ulasim-api/docs) bakın.
@@ -79,6 +81,16 @@ Kaynak servise erişim bilgisi depoda yoktur. `.env` dosyasında aşağıdaki ik
 | `API_ACCESS_KEY` | Ayarlanırsa `/v1` çağrıları `X-API-Key` başlığı ister |
 | `CORS_ORIGINS` | Tarayıcıdan erişebilecek siteler |
 
+### Çevrimdışı tahmin modeli
+
+Uygulama bağlantı yokken resmî kalkış saatleri ve öğrenilmiş durak süreleriyle tahmini varış gösterir (sözleşme: şema v1). Sunucu tarafı üç parçadır; hepsi `data/` altında çalışır:
+
+- **Toplayıcı** (`transport_api/collector.py`): `COLLECTOR_ENABLED=1` ise API süreci içinde çalışır. Hat yönlerini kaynak servisten doğrudan, önbelleğe yazmadan sorgular (araçlı hatlar 4 dk, araçsızlar 10 dk; 05:30-00:30 arası). Kayıtları 5 dakikada bir `data/anlik/GÜN.jsonl.gz` dosyasına ekler, 60 günden eskilerini siler. Durum: `data/collector-status.json`. Erişim bilgisi reddedilirse (401/403) durur ve yeniden denemez.
+- **Model üretimi** (`tools/model_yenile.py`, `deployment/maras-ulasim-model.timer`, her gece 03:30): model 48 saatten eskiyse ve yeni veri varsa `tools/model_uret.py` ile son 28 günden yeniden üretir, doğrular ve atomik olarak `data/offline-model.json.gz` + `data/model-meta.json` olarak yayınlar. Tahminli hat sayısı önceki modelin %80'inin altına düşerse eski model kalır.
+- **Statik veri** (`transport_api/static_refresh.py`, `deployment/maras-ulasim-statik.timer`, pazartesi 03:00): hat listesi, duraklar, tarifeler ve güzergâhları `data/statik/` içine yeniler; makul görünmeyen dosyayı değiştirmez.
+
+Zamanlayıcıları kurmak: birim dosyalarını `~/.config/systemd/user/` içine kopyalayıp `systemctl --user enable --now maras-ulasim-model.timer maras-ulasim-statik.timer`.
+
 ## Dosyalar
 
 | Yol | İçerik |
@@ -86,7 +98,7 @@ Kaynak servise erişim bilgisi depoda yoktur. `.env` dosyasında aşağıdaki ik
 | [transport_api/](transport_api/) | FastAPI sunucusu ve kaynak servis adaptörü |
 | [deployment/](deployment/) | Herkese açık köprü (`transport_proxy.py`: yalnız GET, IP başına sınır), doküman sayfası ve systemd örneği |
 | [examples/client.mjs](examples/client.mjs) | JavaScript istemci örneği |
-| [tools/](tools/) | Durak listesi üretme betikleri |
+| [tools/](tools/) | Durak listesi betikleri, çevrimdışı model üretici (`model_uret.py`) ve yenileyici (`model_yenile.py`) |
 | [tests/](tests/) | Testler: `pytest` ve `node --test tests/client.test.mjs` |
 
 ## Lisans

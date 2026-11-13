@@ -17,10 +17,12 @@ APK_NAME = "maras-ulasim-v1.0.0.apk"
 APK_PATH = ROOT / "dist" / APK_NAME
 # Herkese açık, sabit belgeler: doküman sayfası ve API sözleşmesi
 STATIC = {"/docs": (ROOT / "deployment/api-docs.html", "text/html; charset=utf-8"),
-          "/openapi.json": (ROOT / "openapi.json", "application/json; charset=utf-8")}
+          "/openapi.json": (ROOT / "openapi.json", "application/json; charset=utf-8"),
+          # Çevrimdışı model (ikili gzip; JSON yolu ve 4 MB sınırı dışında). Özeti: /v1/offline-model/meta
+          "/offline-model": (ROOT / "data/offline-model.json.gz", "application/gzip")}
 TOTAL_PER_MINUTE = 480
 IP_PER_MINUTE = 90
-_PATH = re.compile(r"/(?:healthz|v1/(?:capabilities|search|announcements|journey-points|journeys|timetables|stops/(?:nearby|in-bounds|[1-9][0-9]*(?:/(?:lines|arrivals))?)|lines/[1-9][0-9]*(?:/(?:vehicles|stops|shape))?))")
+_PATH = re.compile(r"/(?:healthz|v1/(?:capabilities|offline-model/meta|search|announcements|journey-points|journeys|timetables|stops/(?:nearby|in-bounds|[1-9][0-9]*(?:/(?:lines|arrivals))?)|lines/[1-9][0-9]*(?:/(?:vehicles|stops|shape))?))")
 _slots = threading.BoundedSemaphore(8)
 _lock = threading.Lock()
 _requests = deque()

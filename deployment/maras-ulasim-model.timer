@@ -1,0 +1,10 @@
+[Unit]
+Description=Maraş Ulaşım çevrimdışı modelini gece kontrol et
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Istanbul
+RandomizedDelaySec=120
+Persistent=true
+
+[Install]
+WantedBy=timers.target

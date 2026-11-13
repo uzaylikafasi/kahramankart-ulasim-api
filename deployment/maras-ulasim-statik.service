@@ -1,0 +1,14 @@
+[Unit]
+Description=Maraş Ulaşım statik veri yenileme (hatlar, duraklar, tarifeler, şekiller)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/kahramankart-ulasim-api
+ExecStart=%h/kahramankart-ulasim-api/.venv/bin/python -m transport_api.static_refresh
+Nice=19
+IOSchedulingClass=idle
+MemoryMax=200M
+TimeoutStartSec=1h
+NoNewPrivileges=true

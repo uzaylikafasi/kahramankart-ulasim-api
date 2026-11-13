@@ -937,6 +937,33 @@
           }
         }
       }
+    },
+    "/v1/offline-model/meta": {
+      "get": {
+        "tags": [
+          "Çevrimdışı"
+        ],
+        "summary": "Offline Model Meta",
+        "description": "Uygulamanın günlük kontrol ettiği çevrimdışı model özeti (docs: offline-model-sema.md, şema v1).",
+        "operationId": "offline_model_meta_v1_offline_model_meta_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
     }
   },
   "components": {

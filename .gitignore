@@ -10,3 +10,6 @@ __pycache__/
 
 # Üretilen APK'lar (indirme köprüsü buradan sunar)
 dist/
+
+# Toplayıcı ham verisi, statik girdiler ve üretilen çevrimdışı model
+data/

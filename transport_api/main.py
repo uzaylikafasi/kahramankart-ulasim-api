@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import secrets
 from contextlib import asynccontextmanager
@@ -13,6 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
+from .collector import Collector, CollectorConfig, data_dir
 from .provider import ROOT, Provider, ProviderError, Result, create_provider
 
 load_dotenv(ROOT / ".env", override=False)
@@ -45,9 +47,15 @@ def create_app(provider_factory=create_provider) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app):
         app.state.provider = provider_factory()
+        collector = None
+        if os.getenv("COLLECTOR_ENABLED") == "1":
+            collector = asyncio.create_task(Collector(app.state.provider, CollectorConfig.from_env()).run())
         try:
             yield
         finally:
+            if collector:
+                collector.cancel()
+                await asyncio.gather(collector, return_exceptions=True)
             await app.state.provider.close()
 
     app = FastAPI(
@@ -212,6 +220,19 @@ def create_app(provider_factory=create_provider) -> FastAPI:
                 "latForFrom": lat1, "lngForFrom": lng1, "latForTo": lat2, "lngForTo": lng2,
                 "fromId": from_stop_id, "toId": to_stop_id}
         return wrap(await p.post("GetJourneyPlanner", body, ttl=30))
+
+    @router.get("/offline-model/meta", response_model=Envelope, tags=["Çevrimdışı"])
+    async def offline_model_meta():
+        """Uygulamanın günlük kontrol ettiği çevrimdışı model özeti (docs: offline-model-sema.md, şema v1)."""
+        path = data_dir() / "model-meta.json"
+        try:
+            meta = json.loads(path.read_bytes())
+            if not isinstance(meta, dict) or not isinstance(meta.get("sha256"), str):
+                raise ValueError()
+            modified = datetime.fromtimestamp(path.stat().st_mtime, ZoneInfo("UTC")).isoformat()
+        except (OSError, ValueError):
+            raise ProviderError("OFFLINE_MODEL_UNAVAILABLE", "Çevrimdışı model henüz yok.", 404) from None
+        return Envelope(data=meta, meta=Meta(source="Maraş Ulaşım çevrimdışı model", fetched_at=modified, cached=False))
 
     app.include_router(router)
     return app
